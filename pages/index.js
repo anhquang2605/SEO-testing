@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import Head from 'next/head';
 
-import Fuse from 'fuse.js';
-import _ from 'lodash';
 
 import styles from '../styles/Home.module.css';
 import CodeSampleModal from '../components/CodeSampleModal';
@@ -10,10 +8,6 @@ import Image from 'next/image';
 export default function Start({ countries }) {
   const [results, setResults] = useState(countries);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const fuse = new Fuse(countries, {
-    keys: ['name'],
-    threshold: 0.3,
-  });
 
   return (
     <div>
@@ -44,14 +38,18 @@ export default function Start({ countries }) {
             className={styles.input}
             onChange={async (e) => {
               const { value } = e.currentTarget;
+              // Dynamically load libraries without importing them at the top of the file
+              const Fuse = (await import('fuse.js')).default;
+              const _ = (await import('lodash')).default;
 
-              const searchResult = fuse
-                .search(value)
-                .map((result) => result.item);
+              const fuse = new Fuse(countries, {
+                keys: ['name'],
+                threshold: 0.3,
+              });
 
-              const updatedResults = searchResult.length
-                ? searchResult
-                : countries;
+              const searchResult = fuse.search(value).map((result) => result.item);
+
+              const updatedResults = searchResult.length ? searchResult : countries;
               setResults(updatedResults);
 
               // Fake analytics hit
